@@ -150,7 +150,7 @@ def compile_():
 
 font = ("Ariel", 12, "bold")
 root = tk.Tk()
-root.title = "IE Link creator"
+root.title("IE Link creator")
 root.geometry("761x289")
 root.configure(background="#DDD1D1")
 root.resizable(False, False)
