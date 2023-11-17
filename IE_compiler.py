@@ -76,6 +76,7 @@ def select_output():
         convert_but.configure(state="normal")
     else:
         convert_but.configure(state="disabled")
+    unlink(output_path)
 
 
 def select_url():
