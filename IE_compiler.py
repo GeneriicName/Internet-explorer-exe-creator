@@ -141,7 +141,7 @@ def compile_():
     will_comp = fr"{environ['temp']}\{random()}{random()}".replace(".", "") + ".vb"
     with open(will_comp, "w") as to_comp:
         to_comp.write(script)
-    run([r"C:\Windows\Microsoft.NET\Framework64\v4.0.30319\vbc.exe", "/target:winexe", f'/out:{ready.output_path}',
+    run([compiler, "/target:winexe", f'/out:{ready.output_path}',
          f'/win32icon:{ready.icon_path}', will_comp], stdout=DEVNULL, stderr=DEVNULL)
 
     unlink(will_comp)
@@ -150,6 +150,7 @@ def compile_():
 
 
 font = ("Ariel", 12, "bold")
+
 root = tk.Tk()
 root.title("IE Link creator")
 root.geometry("761x289")
