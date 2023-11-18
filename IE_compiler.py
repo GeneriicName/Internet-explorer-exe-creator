@@ -85,6 +85,7 @@ def select_url():
         return
     elif not validators.url(url):
         showerror(title=f'Invalid URL', message=f'Invalid URL "{url}"')
+        select_url()
         return
     ready.url = True
     ready.url_actual = url
