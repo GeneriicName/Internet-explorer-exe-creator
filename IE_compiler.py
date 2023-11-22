@@ -1,4 +1,5 @@
 import sys
+from validators import url as check_url
 import tkinter
 import tkinter as tk
 from tkinter import filedialog as fd
@@ -6,8 +7,8 @@ from tkinter.messagebox import showerror
 from tkinter import simpledialog
 from os import environ, path, unlink
 from subprocess import run, DEVNULL
-import validators
 from random import random
+from icoextract import IconExtractor
 
 compiler = r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\vbc.exe"
 if not path.exists(compiler):
@@ -24,7 +25,7 @@ def reset():
     ready.url_actual = None
     ready.icon_path = None
     ready.output_path = None
-    convert_but.configure(state="disabled")
+    convert_but.configure(state="disabled", cursor="arrow")
     url_entry.configure(text="URL: None")
     icon_path_lab.configure(text="Icon path: None")
     output_path_lab.configure(text="Output: None")
@@ -39,7 +40,6 @@ class IsReady:
         self.icon_path = None
         self.output_path = None
         self.desktop = environ["USERPROFILE"] + "\\desktop"
-        self.compiler = r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\vbc.exe"
 
     def check(self):
         return all([self.output, self.icon, self.url])
@@ -57,9 +57,9 @@ def select_icon():
     except AttributeError:
         pass
     if ready.check():
-        convert_but.configure(state="normal")
+        convert_but.configure(state="normal", cursor="hand2")
     else:
-        convert_but.configure(state="disabled")
+        convert_but.configure(state="disabled", cursor="arrow")
 
 
 def select_output():
@@ -70,26 +70,49 @@ def select_output():
         ready.output_path = output_path
         ready.output = True
         output_path_lab.configure(text=f"Output path: {output_path}")
+        unlink(output_path)
     except AttributeError:
         pass
     if ready.check():
-        convert_but.configure(state="normal")
+        convert_but.configure(state="normal", cursor="hand2")
     else:
-        convert_but.configure(state="disabled")
-    unlink(output_path)
+        convert_but.configure(state="disabled", cursor="arrow")
 
 
 def select_url():
     url = simpledialog.askstring(title="URL", prompt="URL for the website:\t\t\t\t\t\t")
     if url is None:
         return
-    elif not validators.url(url):
-        showerror(title=f'Invalid URL', message=f'Invalid URL "{url}"')
-        select_url()
-        return
+    elif not check_url(url):
+        if not tkinter.messagebox.askyesno(title=f'Invalid URL',
+                                           message=f'Invalid URL "{url}"\nDo you want to continue?'):
+            return
     ready.url = True
     ready.url_actual = url
-    url_entry.configure(text=url)
+    url_entry.configure(text=f"URL: {url}")
+    if ready.check():
+        convert_but.configure(state="normal", cursor="hand2")
+    else:
+        convert_but.configure(state="disabled", cursor="arrow")
+
+
+
+def extract():
+    try:
+        extract_path = fd.askopenfile(filetypes=[('executables', '*.exe')], initialdir=ready.desktop,
+                                      title="Select a file to extract it's icon").name.strip()
+        output_icon_path = fd.asksaveasfile(mode='w', defaultextension=".ico", initialdir=ready.desktop,
+                                            title="Select location to save the icon").name.strip()
+        output_icon_path.strip("ico")
+    except AttributeError:
+        return
+    try:
+        extractor = IconExtractor(extract_path)
+        extractor.export_icon(output_icon_path, num=0)
+        tk.messagebox.showinfo(title="Success!", message=f"Extracted the icon to {output_icon_path}")
+    except Exception as e:
+        unlink(output_icon_path)
+        showerror("Error", f"Didnt extract.\n{e}")
 
 
 def compile_():
@@ -151,30 +174,32 @@ def compile_():
 
 
 font = ("Ariel", 12, "bold")
-
 root = tk.Tk()
-root.title("IE Link creator")
-root.geometry("761x289")
+root.geometry("761x340")
 root.configure(background="#DDD1D1")
 root.resizable(False, False)
 
-url_but = tk.Button(root, text="Select URL", background="#ADAEBB", font=("Ariel", 10, "bold"), command=select_url)
-url_but.place(x=15, y=23, width=100, height=41)
+extract_but = tk.Button(root, text="Extract", background="#0F9BC8", font=("Ariel", 20, "bold"), command=extract,
+                        cursor="hand2")
+extract_but.place(x=15, y=17, width=730, height=41)
+
+url_but = tk.Button(root, text="Select URL", background="#ADAEBB", font=("Ariel", 10, "bold"), command=select_url,
+                    cursor="hand2")
+url_but.place(x=15, y=74, width=100, height=41)
 url_entry = tk.Label(root, background="#D9D9D9", text="URL: None", font=font)
-url_entry.place(x=150, y=23, width=550, height=41)
+url_entry.place(x=150, y=74, width=550, height=41)
 
-icon_but = tk.Button(root, text="Pick an icon", background="#ADAEBB", font=font, command=select_icon)
-icon_but.place(x=15, y=80, width=100, height=41)
+icon_but = tk.Button(root, text="Pick an icon", background="#ADAEBB", font=font, command=select_icon, cursor="hand2")
+icon_but.place(x=15, y=131, width=100, height=41)
 icon_path_lab = tk.Label(root, background="#D9D9D9", text="Icon path: None", font=font)
-icon_path_lab.place(x=150, y=80, width=550, height=41)
+icon_path_lab.place(x=150, y=131, width=550, height=41)
 
-output_but = tk.Button(root, text="Output path", background="#ADAEBB", font=font, command=select_output)
-output_but.place(x=15, y=137, width=100, height=41)
+output_but = tk.Button(root, text="Output path", background="#ADAEBB", font=font, command=select_output, cursor="hand2")
+output_but.place(x=15, y=188, width=100, height=41)
 output_path_lab = tk.Label(root, background="#D9D9D9", text="Output: None", font=font)
-output_path_lab.place(x=150, y=137, width=550, height=41)
+output_path_lab.place(x=150, y=188, width=550, height=41)
 
 convert_but = tk.Button(root, text="Convert", background="#0F9BC8", font=("Ariel", 20, "bold"), command=compile_)
 convert_but.configure(state="disabled")
-convert_but.place(x=15, y=217, width=730, height=41)
-
+convert_but.place(x=15, y=268, width=730, height=41)
 root.mainloop()
