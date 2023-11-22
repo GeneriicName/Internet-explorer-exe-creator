@@ -1,1 +1,2 @@
 validators=0.22.0
+icoextract=0.1.4
