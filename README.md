@@ -11,3 +11,4 @@ py -m pip install -r requirements.txt
 ```
 
 ## You can use it as you wish, if you have feedback, feel free.
+![example](https://github.com/GeneriicName/Internet-explorer-exe-creator/assets/139624416/5739f534-b605-4087-8610-4f76f067380d)
